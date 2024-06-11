@@ -14,6 +14,9 @@ import minimuxer
 import AltStoreCore
 import UniformTypeIdentifiers
 
+import SwiftUI
+
+
 let pairingFileName = "ALTPairingFile.mobiledevicepairing"
 
 final class LaunchViewController: RSTLaunchViewController, UIDocumentPickerDelegate
@@ -61,57 +64,7 @@ final class LaunchViewController: RSTLaunchViewController, UIDocumentPickerDeleg
     }
     
     func fetchPairingFile() -> String? {
-        let filename = "ALTPairingFile.mobiledevicepairing"
-        let fm = FileManager.default
-        let documentsPath = fm.documentsDirectory.appendingPathComponent("/\(filename)")
-        if fm.fileExists(atPath: documentsPath.path), let contents = try? String(contentsOf: documentsPath), !contents.isEmpty {
-            print("Loaded ALTPairingFile from \(documentsPath.path)")
-            return contents
-        } else if
-            let appResourcePath = Bundle.main.url(forResource: "ALTPairingFile", withExtension: "mobiledevicepairing"),
-            fm.fileExists(atPath: appResourcePath.path),
-            let data = fm.contents(atPath: appResourcePath.path),
-            let contents = String(data: data, encoding: .utf8),
-            !contents.isEmpty,
-            !UserDefaults.standard.isPairingReset {
-            print("Loaded ALTPairingFile from \(appResourcePath.path)")
-            return contents
-        } else if let plistString = Bundle.main.object(forInfoDictionaryKey: "ALTPairingFile") as? String, !plistString.isEmpty, !plistString.contains("insert pairing file here"), !UserDefaults.standard.isPairingReset{
-            print("Loaded ALTPairingFile from Info.plist")
-            return plistString
-        } else {
-            // Show an alert explaining the pairing file
-            // Create new Alert
-            let dialogMessage = UIAlertController(title: "Pairing File", message: "Select the pairing file for your device. For more information, go to https://wiki.sidestore.io/guides/getting-started/#pairing-file", preferredStyle: .alert)
-            
-            // Create OK button with action handler
-            let ok = UIAlertAction(title: "OK", style: .default, handler: { (action) -> Void in
-                // Try to load it from a file picker
-                var types = UTType.types(tag: "plist", tagClass: UTTagClass.filenameExtension, conformingTo: nil)
-                types.append(contentsOf: UTType.types(tag: "mobiledevicepairing", tagClass: UTTagClass.filenameExtension, conformingTo: UTType.data))
-                types.append(.xml)
-                let documentPickerController = UIDocumentPickerViewController(forOpeningContentTypes: types)
-                documentPickerController.shouldShowFileExtensions = true
-                documentPickerController.delegate = self
-                self.present(documentPickerController, animated: true, completion: nil)
-                UserDefaults.standard.isPairingReset = false
-             })
-            
-            //Add OK button to a dialog message
-            dialogMessage.addAction(ok)
-
-            // Present Alert to
-            self.present(dialogMessage, animated: true, completion: nil)
-
-            let dialogMessage2 = UIAlertController(title: "Analytics", message: "This app contains anonymous analytics for research and project development. By continuing to use this app, you are consenting to this data collection", preferredStyle: .alert)
-
-            let ok2 = UIAlertAction(title: "OK", style: .default, handler: { (action) -> Void in})
-            
-            dialogMessage2.addAction(ok2)
-            self.present(dialogMessage2, animated: true, completion: nil)
-
-            return nil
-        }
+        return UIPasteboard.general.string
     }
 
     func displayError(_ msg: String) {
